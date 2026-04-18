@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}{{ service.name }} — AubeStatus{% endblock %}
+{% block content %}
+
+<a class="back-link" href="/">Retour</a>
+
+<section class="service-detail">
+  <header class="detail-head">
+    <div class="detail-title">
+      <div class="service-icon">{{ service.initials }}</div>
+      <div>
+        <h1>{{ service.name }}
+          <span class="pill-status {{ service.status }}">
+            <span class="dot {{ service.status }}"></span>
+            {% if service.status == 'up' %}Operationnel
+            {% elif service.status == 'down' %}Indisponible
+            {% else %}Inconnu{% endif %}
+          </span>
+        </h1>
+        <p class="service-desc">{{ service.description }}</p>
+      </div>
+    </div>
+    <div class="detail-links">
+      <a class="btn" href="{{ service.public_url }}" target="_blank" rel="noopener">Ouvrir le service</a>
+      <a class="btn btn-ghost" href="/badge/{{ service.id }}.svg" target="_blank">Badge SVG</a>
+    </div>
+  </header>
+
+  <div class="detail-grid">
+    <div class="stat-card">
+      <div class="stat-value">{% if service.uptime_90d is not none %}{{ service.uptime_90d }}%{% else %}—{% endif %}</div>
+      <div class="stat-label">Uptime 90 jours</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{% if service.latency_ms is not none %}{{ service.latency_ms }} ms{% else %}—{% endif %}</div>
+      <div class="stat-label">Latence</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{% if service.http_code %}{{ service.http_code }}{% else %}—{% endif %}</div>
+      <div class="stat-label">Code HTTP</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="font-size:0.9rem; word-break:break-all;">
+        <code style="font-family:inherit;">{{ service.url }}</code>
+      </div>
+      <div class="stat-label">URL surveillee</div>
+    </div>
+  </div>
+
+  <h2>Historique 90 jours</h2>
+  <div class="bar-chart bar-chart-lg">
+    {% for d in service.history %}
+    <span class="bar {{ d.state }}"
+      title="{{ d.day }} — {% if d.uptime is not none %}{{ d.uptime }}%{% else %}Pas de donnees{% endif %}"></span>
+    {% endfor %}
+  </div>
+
+  {% if service.auto_restart %}
+  <h2>Redemarrages automatiques</h2>
+  <div class="restart-summary">
+    <span class="pill-mini on">Auto-restart ACTIF</span>
+    <span>{{ service.restart_count_24h }} tentative{% if service.restart_count_24h != 1 %}s{% endif %} dans les 24h</span>
+    {% if service.last_restart %}
+    <span>· Dernier: <code>{{ service.last_restart.ts }}</code>
+      — {% if service.last_restart.success %}OK{% else %}echec{% endif %}
+      ({{ service.last_restart.message }})</span>
+    {% endif %}
+  </div>
+  {% if restarts %}
+  <div class="checks-table-wrap">
+    <table class="checks-table">
+      <thead>
+        <tr>
+          <th>Horodatage (UTC)</th>
+          <th>Resultat</th>
+          <th>PID</th>
+          <th>Message</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in restarts %}
+        <tr>
+          <td class="ts">{{ r.ts }}</td>
+          <td>
+            <span class="pill pill-{{ 'up' if r.success == 1 else 'down' }}">
+              {% if r.success == 1 %}SPAWN{% else %}FAIL{% endif %}
+            </span>
+          </td>
+          <td>{{ r.pid or '—' }}</td>
+          <td class="err">{{ r.message or '' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+  {% endif %}
+
+  <h2>60 dernieres verifications</h2>
+  <div class="checks-table-wrap">
+    <table class="checks-table">
+      <thead>
+        <tr>
+          <th>Horodatage (UTC)</th>
+          <th>Etat</th>
+          <th>HTTP</th>
+          <th>Latence</th>
+          <th>Erreur</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in recent %}
+        <tr>
+          <td class="ts">{{ c.ts }}</td>
+          <td>
+            <span class="pill pill-{{ 'up' if c.status == 1 else 'down' }}">
+              {% if c.status == 1 %}OK{% else %}KO{% endif %}
+            </span>
+          </td>
+          <td>{{ c.http_code or '—' }}</td>
+          <td>{% if c.response_ms is not none %}{{ c.response_ms }} ms{% else %}—{% endif %}</td>
+          <td class="err">{{ c.error or '' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,17 @@
+[Unit]
+Description=AubeStatus - Page de statut L'Aube Etoilee
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=aubestatus
+WorkingDirectory=/opt/aubestatus
+ExecStart=/opt/aubestatus/run.sh prod
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

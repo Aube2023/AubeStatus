@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="hero hero-{{ overall_status }}">
+  <div class="hero-content">
+    <div class="hero-icon">
+      {% if overall_status == 'operational' %}OK
+      {% elif overall_status == 'major' %}KO
+      {% else %}!{% endif %}
+    </div>
+    <div class="hero-text">
+      <h1>{{ overall_label }}</h1>
+      <p class="hero-sub">
+        {{ counts.up }}/{{ counts.total }} service{% if counts.total > 1 %}s{% endif %} operationnel{% if counts.up > 1 %}s{% endif %}
+        {% if counts.down %} · {{ counts.down }} en panne{% endif %}
+        {% if counts.unknown %} · {{ counts.unknown }} non verifie{% if counts.unknown > 1 %}s{% endif %}{% endif %}
+      </p>
+    </div>
+    {% if global_uptime is not none %}
+    <div class="hero-big-uptime">
+      <div class="big">{{ global_uptime }}%</div>
+      <div class="label">Uptime moyen 90j</div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<div class="kpis">
+  <div class="kpi">
+    <div class="kpi-value up">{{ counts.up }}</div>
+    <div class="kpi-label">Operationnels</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-value {% if counts.down %}down{% endif %}">{{ counts.down }}</div>
+    <div class="kpi-label">En panne</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-value">{% if avg_latency is not none %}{{ avg_latency }} ms{% else %}—{% endif %}</div>
+    <div class="kpi-label">Latence moyenne</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-value {% if ongoing_incidents %}warn{% endif %}">{{ ongoing_incidents }}</div>
+    <div class="kpi-label">Incidents en cours</div>
+  </div>
+</div>
+
+{% if auto_restart_enabled %}
+<div class="auto-restart-bar">
+  <span class="pill-mini on">Auto-restart ACTIF</span>
+  <span>{{ total_restarts_24h }} redemarrage{% if total_restarts_24h != 1 %}s{% endif %} dans les dernieres 24h</span>
+</div>
+{% endif %}
+
+{% for category, items in categories.items() %}
+<section class="category">
+  <h2 class="category-title">{{ category }}</h2>
+  <div class="services">
+    {% for s in items %}
+    <article class="service-card s-{{ s.status }}">
+      <header class="service-head">
+        <div class="service-icon">{{ s.initials }}</div>
+        <div class="service-identity">
+          <div>
+            <a class="service-name" href="/service/{{ s.id }}">{{ s.name }}</a>
+            <span class="pill-status {{ s.status }}">
+              <span class="dot {{ s.status }}"></span>
+              {% if s.status == 'up' %}OK
+              {% elif s.status == 'down' %}DOWN
+              {% else %}?{% endif %}
+            </span>
+          </div>
+          <p class="service-desc">{{ s.description }}</p>
+        </div>
+        <div class="service-stats">
+          <div class="uptime-big">{% if s.uptime_90d is not none %}{{ s.uptime_90d }}%{% else %}—{% endif %}</div>
+          <div class="uptime-label">90 jours</div>
+        </div>
+      </header>
+
+      <div class="bar-chart" aria-label="Historique 90 jours de {{ s.name }}">
+        {% for d in s.history %}
+        <span
+          class="bar {{ d.state }}"
+          title="{{ d.day }} — {% if d.uptime is not none %}{{ d.uptime }}%{% else %}Pas de donnees{% endif %}"
+        ></span>
+        {% endfor %}
+      </div>
+
+      <footer class="service-foot">
+        <span>
+          {% if s.latency_ms is not none %}
+            <span class="latency-badge">{{ s.latency_ms }} ms</span>
+          {% else %}—{% endif %}
+          {% if s.http_code %}<span style="margin-left:8px;">HTTP {{ s.http_code }}</span>{% endif %}
+          {% if s.restart_count_24h > 0 %}
+            <span class="restart-badge" title="Tentatives de redemarrage auto dans les 24h">
+              RELANCE {{ s.restart_count_24h }}x
+            </span>
+          {% elif s.auto_restart and s.status == 'down' %}
+            <span class="restart-badge pending" title="Auto-restart active">RELANCE auto</span>
+          {% endif %}
+        </span>
+        <span>Il y a 90j - aujourd'hui</span>
+      </footer>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endfor %}
+
+{% if incidents %}
+<section class="incidents">
+  <h2 class="section-title">Incidents recents</h2>
+  <ul class="incident-list">
+    {% for inc in incidents %}
+    <li class="incident {% if inc.ended_at %}resolved{% else %}ongoing{% endif %}">
+      <div class="incident-head">
+        <strong>{{ inc.service_name }}</strong>
+        <span class="incident-tag">
+          {% if inc.ended_at %}Resolu{% else %}En cours{% endif %}
+        </span>
+      </div>
+      <div class="incident-meta">
+        Debut: {{ inc.started_at }}
+        {% if inc.ended_at %} · Fin: {{ inc.ended_at }}{% endif %}
+      </div>
+      <div class="incident-reason">{{ inc.reason or "Raison inconnue" }}</div>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% endblock %}

@@ -137,6 +137,55 @@ def service_detail(service_id):
     )
 
 
+@app.route("/api")
+def api_docs():
+    sample_id = SERVICES[0]["id"] if SERVICES else "aubedocs"
+    endpoints = [
+        {
+            "method": "GET",
+            "path": "/api/status",
+            "title": "Statut global",
+            "description": "Retourne l'etat courant de tous les services monitores + historique 90 jours.",
+            "response_type": "application/json",
+            "example_fields": [
+                "generated_at", "services[].id", "services[].name",
+                "services[].status", "services[].uptime_90d", "services[].history[]",
+            ],
+        },
+        {
+            "method": "GET",
+            "path": "/api/service/" + sample_id,
+            "title": "Detail d'un service",
+            "description": "Meme payload que /api/status pour un seul service + les 60 dernieres verifications.",
+            "response_type": "application/json",
+            "example_fields": ["status", "latency_ms", "http_code", "history[]", "recent[]"],
+        },
+        {
+            "method": "GET",
+            "path": "/api/health",
+            "title": "Ping interne",
+            "description": "Health check de AubeStatus lui-meme. Utile pour supervision tierce.",
+            "response_type": "application/json",
+            "example_fields": ["status", "service", "services_monitored"],
+        },
+        {
+            "method": "GET",
+            "path": "/badge/" + sample_id + ".svg",
+            "title": "Badge SVG",
+            "description": "Image SVG auto-actualisee pour README ou landing. Trois etats: operationnel / indisponible / inconnu.",
+            "response_type": "image/svg+xml",
+            "example_fields": [],
+        },
+    ]
+    return render_template(
+        "api.html",
+        endpoints=endpoints,
+        sample_id=sample_id,
+        services=SERVICES,
+        now=datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
+    )
+
+
 @app.route("/api/status")
 def api_status():
     return jsonify({

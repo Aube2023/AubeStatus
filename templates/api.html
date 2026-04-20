@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}API — AubeStatus{% endblock %}
+{% block content %}
+
+<section class="api-hero">
+  <div>
+    <h1>API AubeStatus</h1>
+    <p class="api-lead">
+      Acces programmatique au statut des services L'Aube Etoilee.
+      Reponses JSON sans auth requise. Rafraichissement en temps reel (~60s).
+    </p>
+    <div class="api-hero-meta">
+      <span class="pill-mini on">PUBLIQUE</span>
+      <span class="pill-mini">SANS CLE API</span>
+      <span class="pill-mini">CORS *</span>
+      <span class="pill-mini">4 ENDPOINTS</span>
+    </div>
+  </div>
+  <div class="api-hero-base">
+    <div class="api-base-label">URL de base</div>
+    <div class="api-base-url">
+      <code id="api-base">https://status.aubeetoilee.com</code>
+      <button class="btn-copy" data-copy="#api-base" title="Copier">Copier</button>
+    </div>
+  </div>
+</section>
+
+{% for ep in endpoints %}
+<article class="api-endpoint" id="ep-{{ loop.index }}">
+  <header class="api-ep-head">
+    <div class="api-ep-meta">
+      <span class="api-method m-{{ ep.method|lower }}">{{ ep.method }}</span>
+      <code class="api-path">{{ ep.path }}</code>
+    </div>
+    <div class="api-ep-title">{{ ep.title }}</div>
+  </header>
+
+  <p class="api-ep-desc">{{ ep.description }}</p>
+
+  <div class="api-block">
+    <div class="api-block-head">
+      <span class="api-block-label">Requete</span>
+      <button class="btn-copy" data-copy="#curl-{{ loop.index }}">Copier</button>
+    </div>
+    <pre class="api-code"><code id="curl-{{ loop.index }}">curl -s https://status.aubeetoilee.com{{ ep.path }}</code></pre>
+  </div>
+
+  <div class="api-block">
+    <div class="api-block-head">
+      <span class="api-block-label">Tester en direct</span>
+      <button
+        class="btn btn-try"
+        data-try="{{ ep.path }}"
+        data-target="#out-{{ loop.index }}"
+        data-type="{{ ep.response_type }}"
+      >Executer</button>
+    </div>
+    <pre class="api-code api-out" id="out-{{ loop.index }}" data-placeholder="Clique sur Executer pour voir la reponse...">{{ '{' }}"info": "clic sur Executer"{{ '}' }}</pre>
+  </div>
+
+  {% if ep.example_fields %}
+  <div class="api-block">
+    <div class="api-block-head">
+      <span class="api-block-label">Champs de reponse</span>
+    </div>
+    <ul class="api-fields">
+      {% for f in ep.example_fields %}
+      <li><code>{{ f }}</code></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</article>
+{% endfor %}
+
+<section class="api-badges">
+  <h2 class="section-title">Badges SVG pour README</h2>
+  <p class="api-ep-desc">
+    Chaque service expose un badge SVG auto-actualise. Parfait pour README, landing, docs internes.
+  </p>
+  <div class="badges-grid">
+    {% for s in services %}
+    <div class="badge-cell">
+      <img src="/badge/{{ s.id }}.svg" alt="Statut {{ s.name }}">
+      <code class="badge-url">&lt;img src="https://status.aubeetoilee.com/badge/{{ s.id }}.svg"&gt;</code>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="api-bottom">
+  <div class="api-bottom-item">
+    <h3>Exemple complet Python</h3>
+    <pre class="api-code"><code>import requests
+
+r = requests.get("https://status.aubeetoilee.com/api/status")
+data = r.json()
+
+for s in data["services"]:
+    if s["status"] == "down":
+        print(f"ALERTE: {s['name']} est en panne")</code></pre>
+  </div>
+  <div class="api-bottom-item">
+    <h3>Exemple Javascript (fetch)</h3>
+    <pre class="api-code"><code>const r = await fetch("https://status.aubeetoilee.com/api/status");
+const data = await r.json();
+
+document.querySelector("#status")
+  .textContent = `${data.services.filter(s => s.status === "up").length} UP`;</code></pre>
+  </div>
+</section>
+
+{% endblock %}

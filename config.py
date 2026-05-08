@@ -34,6 +34,7 @@ RESTART_TARGETS = {
     "aubevideo":    {"dir": "AubeVideo",                 "entry": "app.py",        "port": 5017},
     "aubefinances": {"dir": "AubeFinances/backend",      "entry": "app.py",        "port": 5018},
     "aubemaps":     {"dir": "AubeMaps/backend",          "entry": "app.py",        "port": 5005},
+    "aubepilot":    {"dir": "AubePilot",                 "entry": "app.py",        "port": 5034},
 }
 
 SERVICES = [
@@ -72,7 +73,7 @@ SERVICES = [
     {
         "id": "aubeslides",
         "name": "AubeSlides",
-        "description": "Presentations (port en conflit avec AubeDriver)",
+        "description": "Presentations",
         "url": "http://localhost:5013/",
         "public_url": "https://slides.aubeetoilee.com",
         "category": "Bureautique",
@@ -88,7 +89,7 @@ SERVICES = [
     {
         "id": "aubefiches",
         "name": "AubeFiches",
-        "description": "Fiches de revision (WIP)",
+        "description": "Fiches de revision",
         "url": "http://localhost:5020/",
         "public_url": "https://fiches.aubeetoilee.com",
         "category": "Bureautique",
@@ -104,7 +105,7 @@ SERVICES = [
     {
         "id": "aubefinances",
         "name": "AubeFinances",
-        "description": "Marche boursier (port en conflit avec AubeCRM)",
+        "description": "Marche boursier",
         "url": "http://localhost:5018/",
         "public_url": "https://finances.aubeetoilee.com",
         "category": "Business",
@@ -123,6 +124,14 @@ SERVICES = [
         "description": "Cartographie",
         "url": "http://localhost:5005/",
         "public_url": "https://maps.aubeetoilee.com",
+        "category": "Mobilite",
+    },
+    {
+        "id": "aubepilot",
+        "name": "Aube Pilot",
+        "description": "Marketplace pilotes de drone",
+        "url": "http://localhost:5034/api/stats",
+        "public_url": "https://pilot.aubeetoilee.com",
         "category": "Mobilite",
     },
     {
@@ -152,7 +161,7 @@ SERVICES = [
     {
         "id": "laubemail",
         "name": "L'Aube Mail",
-        "description": "Messagerie (statique pour l'instant)",
+        "description": "Messagerie",
         "url": "http://localhost:5019/",
         "public_url": "https://mail.aubeetoilee.com",
         "category": "Communication",
